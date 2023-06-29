@@ -107,3 +107,12 @@ class test_fileStorage(unittest.TestCase):
         from models.engine.file_storage import FileStorage
         print(type(storage))
         self.assertEqual(type(storage), FileStorage)
+
+    def test_create (self):
+        """ Test create method with string, check for underscores """
+        new = BaseModel(name="basic_af", id="123", latitude=13.373972, longitude=52.516275, price_by_night=180, bananas=3)
+        self.assertEqual(new.name, "basic af")
+        self.assertEqual(new.id, 123)
+        self.assertEqual(new.latitude, 13.373972)
+        self.assertEqual(new.longitude, 52.516275)
+        self.assertEqual(new.price_by_night, 180)
