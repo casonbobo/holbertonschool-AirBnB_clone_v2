@@ -110,9 +110,14 @@ class test_fileStorage(unittest.TestCase):
 
     def test_create (self):
         """ Test create method with string, check for underscores """
-        new = BaseModel(name="basic_af", id="123", latitude=13.373972, longitude=52.516275, price_by_night=180, bananas=3)
-        self.assertEqual(new.name, "basic af")
-        self.assertEqual(new.id, 123)
-        self.assertEqual(new.latitude, 13.373972)
-        self.assertEqual(new.longitude, 52.516275)
-        self.assertEqual(new.price_by_night, 180)
+        test_place = Place(city_id="0001" user_id="0001" name="My_little_house" number_rooms=4 number_bathrooms=2 max_guest=10 price_by_night=300 latitude=37.773972 longitude=-122.431297)
+        test_place.save()
+        self.assertEqual(test_place.city_id, "0001")
+        self.assertEqual(test_place.user_id, "0001")
+        self.assertEqual(test_place.name, "My_little_house")
+        self.assertEqual(test_place.number_rooms, 4)
+        self.assertEqual(test_place.number_bathrooms, 2)
+        self.assertEqual(test_place.max_guest, 10)
+        self.assertEqual(test_place.price_by_night, 300)
+        self.assertEqual(test_place.latitude, 37.773972)
+        self.assertEqual(test_place.longitude, -122.431297)
