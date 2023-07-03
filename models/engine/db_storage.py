@@ -36,7 +36,6 @@ class DBStorage:
     def all(self, cls=None):
         """query on the database"""
         if cls is None:
-
             temp = []
             for c in self.__all_classes.values():
                 temp.extend(self.__session.query(c).all())
