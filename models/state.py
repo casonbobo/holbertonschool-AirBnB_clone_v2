@@ -2,17 +2,18 @@
 """ State Module for HBNB project """
 from sqlalchemy import Column, String
 from sqlalchemy import relationship
-from models.base_model import BaseMode, Base
+from models.base_model import BaseModel, Base
 from models.city import City
+import models
 
 
-
-class State(BaseModel):
+class State(BaseModel, Base):
     """ State class """
 
     __tablename__ = 'states'
     name = Column(String(128), nullable=False)
-    cities = relationship("City", cascade="all, delete-orphan", backref="state")
+    cities = relationship('City', cascade='all, delete-orphan', 
+                          backref='state')
 
     if models.storage_type != "db":
         @property
