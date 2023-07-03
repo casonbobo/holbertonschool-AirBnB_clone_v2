@@ -14,10 +14,12 @@ from models.city import City
 classes = {'User': User, 'Place': Place, 'State': State,
            'City': City, 'Review': Review, 'Amenity': Amenity}
 
+
 class DBStorage:
     """DataBase Storage"""
     __engine = None
     __session = None
+
     def __init__(self):
         """DBStorage Class"""
         user = os.getenv("HBNB_MYSQL_USER")
@@ -25,13 +27,12 @@ class DBStorage:
         host = os.getenv("HBNB_MYSQL_HOST")
         database = os.getenv("HBNB_MYSQL_DB")
         env = os.getenv("HBNB_ENV")
-        self.__engine = create_engine(
-            'mysql+mysqldb://{}:{}@{}/{}'
-            .format(user, password, host, database),
-                    pool_pre_ping=True)
+        self.__engine = create_engine('mysql+mysqldb://{}:{}@{}/{}'
+                                      .format(user, password, host, database),
+                                      pool_pre_ping=True)
         if env == "test":
             Base.metadata.drop_all(self.__engine)
-       
+
     def all(self, cls=None):
         """query on the database"""
         if cls is None:
