@@ -26,16 +26,16 @@ class BaseModel:
                     setattr(self, key, value)
                 if key in ('created_at', 'updated_at'):
                     value = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.%f')
+                    setattr(self, key, value)
             if "created_at" not in kwargs.keys():
-                self.created_at = datetime.now()
-                self.updated_at = self.created_at
+                self.updated_at = self.created_at = datetime.now()
         else:
             self.id = str(uuid.uuid4())
             self.updated_at = self.created_at = datetime.now() #YAY 2 datetimes 
 
     def __str__(self):
         """Returns a string representation of the instance"""
-        cls = (str(type(self)).split('.')[-1]).split('\'')[0]
+        cls = self.__class__.__name__
         return '[{}] ({}) {}'.format(cls, self.id, self.__dict__)
 
     def save(self):
