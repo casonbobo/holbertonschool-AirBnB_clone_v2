@@ -27,7 +27,7 @@ else:
             """Returns a list of cities equal to their state ID"""
             from models import storage
             list_cities = []
-            for c, i in storage.all(City).items():
+            for key, i in storage.all(City).items():
                 if i.state_id == self.id:
                     list_cities.append(i)
             return list_cities
