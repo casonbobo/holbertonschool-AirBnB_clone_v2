@@ -17,7 +17,6 @@ class BaseModel:
 
     def __init__(self, *args, **kwargs):
         """Instatntiates a new model"""
-
         if kwargs:
             if 'id' not in kwargs.keys():
                 self.id = str(uuid.uuid4())
@@ -31,7 +30,7 @@ class BaseModel:
                 self.updated_at = self.created_at = datetime.now()
         else:
             self.id = str(uuid.uuid4())
-            self.updated_at = self.created_at = datetime.now() #YAY 2 datetimes 
+            self.updated_at = self.created_at = datetime.now() #YAY 2 datetimes
 
     def __str__(self):
         """Returns a string representation of the instance"""
@@ -60,5 +59,4 @@ class BaseModel:
     def delete(self):
         """ Deletes the current instance from the storage """
         from models import storage
-
         storage.delete(self)
