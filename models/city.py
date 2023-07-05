@@ -5,6 +5,7 @@ from models.base_model import BaseModel, Base
 from sqlalchemy.orm import relationship
 from os import getenv
 
+
 class City(BaseModel, Base):
     """ The city class with state ID and name"""
 
