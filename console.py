@@ -2,14 +2,14 @@
 """ Console Module """
 import cmd
 import sys
+from models import storage
 from models.base_model import BaseModel
-from models.__init__ import storage
-from models.user import User
 from models.place import Place
 from models.state import State
 from models.city import City
 from models.amenity import Amenity
 from models.review import Review
+from models.user import User
 
 
 class HBNBCommand(cmd.Cmd):
@@ -73,7 +73,7 @@ class HBNBCommand(cmd.Cmd):
                 pline = pline[2].strip()  # pline is now str
                 if pline:
                     # check for *args or **kwargs
-                    if pline[0] == '{' and pline[-1] == '}'\
+                    if pline[0] == '{' and pline[-1] == '}' \
                             and type(eval(pline)) is dict:
                         _args = pline
                     else:
@@ -140,6 +140,9 @@ class HBNBCommand(cmd.Cmd):
         print(obj.id)
         obj.save()
 
+    def do_hcf(self, line):
+        storage.hcf(eval(line))
+
     def help_create(self):
         """ Help information for the create method """
         print("Creates a class of any type")
@@ -201,7 +204,7 @@ class HBNBCommand(cmd.Cmd):
         key = c_name + "." + c_id
 
         try:
-            del (storage.all()[key])
+            storage.delete(storage.all()[key])
             storage.save()
         except KeyError:
             print("** no instance found **")
@@ -211,23 +214,18 @@ class HBNBCommand(cmd.Cmd):
         print("Destroys an individual instance of a class")
         print("[Usage]: destroy <className> <objectId>\n")
 
-    def do_all(self, args):
+    def do_all(self, line):
         """ Shows all objects, or all objects of a class"""
-        print_list = []
-
-        if args:
-            args = args.split(' ')[0]  # remove possible trailing args
-            if args not in HBNBCommand.classes:
+        if not line:
+            objs = storage.all()
+        if line:
+            args = line.split()
+            if args[0] not in HBNBCommand.classes.keys():
                 print("** class doesn't exist **")
                 return
-            for k, v in storage._FileStorage__objects.items():
-                if k.split('.')[0] == args:
-                    print_list.append(str(v))
-        else:
-            for k, v in storage._FileStorage__objects.items():
-                print_list.append(str(v))
-
-        print(print_list)
+            else:
+                objs = storage.all(eval(line))
+        print([objs[key].__str__() for key in objs])
 
     def help_all(self):
         """ Help information for the all command """
