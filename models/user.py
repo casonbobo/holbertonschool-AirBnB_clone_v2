@@ -5,12 +5,11 @@ from models.base_model import BaseModel
 from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
 from os import getenv
-
+STO_TYP = getenv("HBNB_TYPE_STORAGE")
 
 class User(BaseModel):
     """ This class defines a user by various attributes """
-
-    if getenv("HBNB_TYPE_STORAGE") == 'db':
+    if STO_TYP == 'db':
         __tablename__ = "users"
         email = Column(String(128), nullable=False)
         password = Column(String(128), nullable=False)
