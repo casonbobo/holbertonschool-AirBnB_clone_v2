@@ -13,6 +13,7 @@ else:
     class Base:
         pass
 
+
 class BaseModel:
     """A base class for all hbnb models"""
 
@@ -35,8 +36,8 @@ class BaseModel:
                 self.updated_at = self.created_at = datetime.now()
         else:
             self.id = str(uuid.uuid4())
-            self.updated_at = self.created_at = datetime.now() #YAY 2 datetimes
-            
+            self.updated_at = self.created_at = datetime.now()
+            # YAY 2 datetimes
         if STO_TYP != 'db':
             kwargs.pop('__class__', None)
         for attr, val in kwargs.items():
