@@ -13,6 +13,7 @@ class test_state(test_basemodel):
         self.name = "State"
         self.value = State
 
+    @unittest.skipIf(os.getenv("HBNB_ENV") is not alone, "Testing DBStorage")
     def test_name3(self):
         """ """
         new = self.value()
