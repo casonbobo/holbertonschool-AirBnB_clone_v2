@@ -2,32 +2,27 @@
 """ State Module for HBNB project """
 from models.base_model import BaseModel, Base
 from sqlalchemy import Column, String
-from models.city import City
-import os
+import models
+from sqlalchemy.orm import relationship
+from os import getenv
 
-if os.getenv("HBNB_TYPE_STORAGE") == 'db':
 
-    class State(BaseModel, Base):
-        """State class"""
-        from sqlalchemy.orm import relationship
+class State(BaseModel, Base):
+    if getenv("HBNB_TYPE_STORAGE") == 'db':
+        """DB State class"""
         __tablename__ = "states"
         name = Column(String(128), nullable=False)
-
         cities = relationship("City", backref="state",
                               cascade="all, delete")
-
-else:
-
-    class State(BaseModel):
+    else:
         """File Storage State"""
         name = ""
 
         @property
         def cities(self):
             """Returns a list of cities equal to their state ID"""
-            from models import storage
             list_cities = []
-            for key, i in storage.all(City).items():
-                if i.state_id == self.id:
-                    list_cities.append(i)
+            for city in models.storage.all("City").values():
+                if city.state_id == self.id:
+                    list_cities.append(city)
             return list_cities
