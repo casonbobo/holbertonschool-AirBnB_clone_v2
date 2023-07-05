@@ -4,9 +4,14 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime
 from sqlalchemy.ext.declarative import declarative_base
+from os import getenv
 
-Base = declarative_base()
-
+STO_TYP = getenv("HBNB_TYPE_STORAGE")
+if STO_TYP == 'db':
+    Base = declarative_base()
+else:
+    class Base:
+        pass
 
 class BaseModel:
     """A base class for all hbnb models"""
@@ -31,6 +36,11 @@ class BaseModel:
         else:
             self.id = str(uuid.uuid4())
             self.updated_at = self.created_at = datetime.now() #YAY 2 datetimes
+            
+        if STO_TYP != 'db':
+            kwargs.pop('__class__', None)
+        for attr, val in kwargs.items():
+            setattr(self, attr, val)
 
     def __str__(self):
         """Returns a string representation of the instance"""
