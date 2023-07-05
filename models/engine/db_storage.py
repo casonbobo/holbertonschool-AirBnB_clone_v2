@@ -2,7 +2,7 @@
 from os import getenv
 from sqlalchemy import create_engine, inspect, MetaData
 from sqlalchemy.orm import sessionmaker, scoped_session
-from models.base_model import Base, BaseModel
+from models.base_model import BaseModel, Base
 from models import city, place, review, state, amenity, user
 
 
