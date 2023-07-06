@@ -1,120 +1,175 @@
 #!/usr/bin/python3
-""" """
-import json
-import models
-import MySQLdb
+''' module for file_storage tests '''
 import unittest
-import os
-from models import storage
-from models.base_model import BaseModel, Base
+import MySQLdb
 from models.user import User
-from models.state import State
-from models.city import City
-from models.amenity import Amenity
-from models.place import Place
-from models.review import Review
-from models.engine.db_storage import DBStorage
-from models.engine.file_storage import FileStorage
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import column, inspect, text
-from sqlalchemy.orm.session import Session
-from sqlalchemy.engine.base import Engine
+from models import storage
+from datetime import datetime
+import os
 
-
-@unittest.skipIf(type(models.storage) == FileStorage, "Testing FileStorage")
+@unittest.skipIf(os.getenv('HBNB_TYPE_STORAGE') != 'db',
+                 'db_storage test not supported')
 class TestDBStorage(unittest.TestCase):
-    """ """
+    '''testing dbstorage engine'''
+    def test_new_and_save(self):
+        '''testing  the new and save methods'''
+        db = MySQLdb.connect(user=os.getenv('HBNB_MYSQL_USER'),
+                             host=os.getenv('HBNB_MYSQL_HOST'),
+                             passwd=os.getenv('HBNB_MYSQL_PWD'),
+                             port=3306,
+                             db=os.getenv('HBNB_MYSQL_DB'))
+        new_user = User(**{'first_name': 'jack',
+                           'last_name': 'bond',
+                           'email': 'jack@bond.com',
+                           'password': 12345})
+        cur = db.cursor()
+        cur.execute('SELECT COUNT(*) FROM users')
+        old_count = cur.fetchall()
+        cur.close()
+        db.close()
+        new_user.save()
+        db = MySQLdb.connect(user=os.getenv('HBNB_MYSQL_USER'),
+                             host=os.getenv('HBNB_MYSQL_HOST'),
+                             passwd=os.getenv('HBNB_MYSQL_PWD'),
+                             port=3306,
+                             db=os.getenv('HBNB_MYSQL_DB'))
+        cur = db.cursor()
+        cur.execute('SELECT COUNT(*) FROM users')
+        new_count = cur.fetchall()
+        self.assertEqual(new_count[0][0], old_count[0][0] + 1)
+        cur.close()
+        db.close()
 
-    @classmethod
-    def setUpClass(cls):
-        if type(models.storage) == DBStorage:
-            cls.storage = DBStorage()
-            Base.metadata.create_all(cls.storage._DBStorage__engine)
-            Session = sessionmaker(bind=cls.storage._DBStorage__engine)
-            cls.storage._DBStorage__session = Session()
-            cls.state = State(name="Oklahoma")
-            cls.storage._DBStorage__session.add(cls.state)
-            cls.city = City(name="Tulsa", state_id=cls.state.id)
-            cls.storage._DBStorage__session.add(cls.city)
-            cls.user = User(email="5580@holbertonstudents.com", password="UWU")
-            cls.storage._DBStorage__session.add(cls.user)
-            cls.place = Place(city_id=cls.city.id, user_id=cls.user.id,
-                              name="Hell")
-            cls.storage._DBStorage__session.add(cls.place)
-            cls.amenity = Amenity(name="Lacking")
-            cls.storage._DBStorage__session.add(cls.amenity)
-            cls.review = Review(place_id=cls.place.id, user_id=cls.user.id,
-                                text="meh")
-            cls.storage._DBStorage__session.add(cls.review)
-            cls.storage._DBStorage__session.commit()
+    def test_new(self):
+        """ New object is correctly added to database """
+        new = User(
+            email='john2020@gmail.com',
+            password='password',
+            first_name='John',
+            last_name='Zoldyck'
+        )
+        self.assertFalse(new in storage.all().values())
+        new.save()
+        self.assertTrue(new in storage.all().values())
+        dbc = MySQLdb.connect(
+            host=os.getenv('HBNB_MYSQL_HOST'),
+            port=3306,
+            user=os.getenv('HBNB_MYSQL_USER'),
+            passwd=os.getenv('HBNB_MYSQL_PWD'),
+            db=os.getenv('HBNB_MYSQL_DB')
+        )
+        cursor = dbc.cursor()
+        cursor.execute('SELECT * FROM users WHERE id="{}"'.format(new.id))
+        result = cursor.fetchone()
+        self.assertTrue(result is not None)
+        self.assertIn('john2020@gmail.com', result)
+        self.assertIn('password', result)
+        self.assertIn('John', result)
+        self.assertIn('Zoldyck', result)
+        cursor.close()
+        dbc.close()
 
-    @classmethod
-    def tearDownClass(cls):
-        if type(models.storage) == DBStorage:
-            cls.storage._DBStorage__session.delete(cls.state)
-            cls.storage._DBStorage__session.delete(cls.city)
-            cls.storage._DBStorage__session.delete(cls.user)
-            cls.storage._DBStorage__session.delete(cls.amenity)
-            cls.storage._DBStorage__session.commit()
-            del cls.state
-            del cls.city
-            del cls.user
-            del cls.place
-            del cls.amenity
-            del cls.review
-            cls.storage._DBStorage__session.close()
-            del cls.storage
+    def test_delete(self):
+        """ Object is correctly deleted from database """
+        new = User(
+            email='john2020@gmail.com',
+            password='password',
+            first_name='John',
+            last_name='Zoldyck'
+        )
+        obj_key = 'User.{}'.format(new.id)
+        dbc = MySQLdb.connect(
+            host=os.getenv('HBNB_MYSQL_HOST'),
+            port=3306,
+            user=os.getenv('HBNB_MYSQL_USER'),
+            passwd=os.getenv('HBNB_MYSQL_PWD'),
+            db=os.getenv('HBNB_MYSQL_DB')
+        )
+        new.save()
+        self.assertTrue(new in storage.all().values())
+        cursor = dbc.cursor()
+        cursor.execute('SELECT * FROM users WHERE id="{}"'.format(new.id))
+        result = cursor.fetchone()
+        self.assertTrue(result is not None)
+        self.assertIn('john2020@gmail.com', result)
+        self.assertIn('password', result)
+        self.assertIn('John', result)
+        self.assertIn('Zoldyck', result)
+        self.assertIn(obj_key, storage.all(User).keys())
+        new.delete()
+        self.assertNotIn(obj_key, storage.all(User).keys())
+        cursor.close()
+        dbc.close()
 
-@unittest.skipIf(type(models.storage) == FileStorage, "Testing FileStorage")
-class TestStateDBInstances(unittest.TestCase):
-    """DBStorage State Tests"""
+    def test_reload(self):
+        """ Tests the reloading of the database session """
+        dbc = MySQLdb.connect(
+            host=os.getenv('HBNB_MYSQL_HOST'),
+            port=3306,
+            user=os.getenv('HBNB_MYSQL_USER'),
+            passwd=os.getenv('HBNB_MYSQL_PWD'),
+            db=os.getenv('HBNB_MYSQL_DB')
+        )
+        cursor = dbc.cursor()
+        cursor.execute(
+            'INSERT INTO users(id, created_at, updated_at, email, password' +
+            ', first_name, last_name) VALUES(%s, %s, %s, %s, %s, %s, %s);',
+            [
+                '4447-by-me',
+                str(datetime.now()),
+                str(datetime.now()),
+                'ben_pike@yahoo.com',
+                'pass',
+                'Benjamin',
+                'Pike',
+            ]
+        )
+        self.assertNotIn('User.4447-by-me', storage.all())
+        dbc.commit()
+        storage.reload()
+        self.assertIn('User.4447-by-me', storage.all())
+        cursor.close()
+        dbc.close()
 
-    def tearDownClass():
-        """tidies up the tests removing storage objects"""
-        storage.hcf(State)
-
-    def setUp(self):
-        """initializes new BaseModel object for testing"""
-        self.state = State()
-        self.state.name = 'Oklahoma'
-        self.state.save()
-
-    def test_state_all(self):
-        """... checks if all() function returns newly created instance"""
-        all_objs = storage.all()
-        all_state_objs = storage.all(State)
-        exist_in_all = False
-        for k in all_objs.keys():
-            if self.state.id in k:
-                exist_in_all = True
-        exist_in_all_states = False
-        for k in all_state_objs.keys():
-            if self.state.id in k:
-                exist_in_all_states = True
-        self.assertTrue(exist_in_all)
-        self.assertTrue(exist_in_all_states)
-
-    def test_new_state(self):
-        """... checks if new() functions after instantiation and save()"""
-        actual = False
-        self.s_new = State(name="NY")
-        self.s_new.save()
-        db_objs = storage.all()
-        for obj in db_objs.values():
-            if obj.id == self.s_new.id:
-                actual = True
-        self.assertTrue(actual)
-
-    def test_state_delete(self):
-        state_id = self.state.id
-        storage.delete(self.state)
-        storage.save()
-        exist_in_all = False
-        for k in storage.all().keys():
-            if state_id in k:
-                exist_in_all = True
-        self.assertFalse(exist_in_all)
-
-
-if __name__ == "__main__":
-    unittest.main()
+    def test_save(self):
+        """ object is successfully saved to database """
+        new = User(
+            email='john2020@gmail.com',
+            password='password',
+            first_name='John',
+            last_name='Zoldyck'
+        )
+        dbc = MySQLdb.connect(
+            host=os.getenv('HBNB_MYSQL_HOST'),
+            port=3306,
+            user=os.getenv('HBNB_MYSQL_USER'),
+            passwd=os.getenv('HBNB_MYSQL_PWD'),
+            db=os.getenv('HBNB_MYSQL_DB')
+        )
+        cursor = dbc.cursor()
+        cursor.execute('SELECT * FROM users WHERE id="{}"'.format(new.id))
+        result = cursor.fetchone()
+        cursor.execute('SELECT COUNT(*) FROM users;')
+        old_cnt = cursor.fetchone()[0]
+        self.assertTrue(result is None)
+        self.assertFalse(new in storage.all().values())
+        new.save()
+        dbc1 = MySQLdb.connect(
+            host=os.getenv('HBNB_MYSQL_HOST'),
+            port=3306,
+            user=os.getenv('HBNB_MYSQL_USER'),
+            passwd=os.getenv('HBNB_MYSQL_PWD'),
+            db=os.getenv('HBNB_MYSQL_DB')
+        )
+        cursor1 = dbc1.cursor()
+        cursor1.execute('SELECT * FROM users WHERE id="{}"'.format(new.id))
+        result = cursor1.fetchone()
+        cursor1.execute('SELECT COUNT(*) FROM users;')
+        new_cnt = cursor1.fetchone()[0]
+        self.assertFalse(result is None)
+        self.assertEqual(old_cnt + 1, new_cnt)
+        self.assertTrue(new in storage.all().values())
+        cursor1.close()
+        dbc1.close()
+        cursor.close()
+        dbc.close()
