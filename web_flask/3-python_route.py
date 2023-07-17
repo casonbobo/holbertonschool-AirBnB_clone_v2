@@ -15,10 +15,12 @@ def hello_hbnb():
 def dis_hbnb():
     return "HBNB"
 
+
 @app.route('/c/<text>', strict_slashes=False)
 def c_route(text):
     formatted_text = text.replace('_', ' ')
     return f"C {formatted_text}"
+
 
 @app.route('/python/', defaults={"text": "is cool"}, strict_slashes=False)
 @app.route('/python/<text>', strict_slashes=False)
