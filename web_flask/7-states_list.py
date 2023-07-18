@@ -16,6 +16,7 @@ def teardown_db(exception):
 
 @app.route('/states_list', strict_slashes=False)
 def states_list():
+    """This is for the states"""
     states = storage.all(State).values()
     sorted_states = sorted(states, key=lambda state: state.name)
 
